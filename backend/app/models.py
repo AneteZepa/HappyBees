@@ -1,32 +1,19 @@
-"""
-HappyBees Backend - Database Models
-
-SQLAlchemy ORM models for TimescaleDB tables.
-"""
-
 from datetime import datetime
 from sqlalchemy import Column, String, Integer, Float, Boolean, DateTime, ForeignKey, Text
 from sqlalchemy.dialects.postgresql import UUID, JSONB
+from app.database import Base
 import uuid
 
-from backend.app.database import Base
-
-
 class Node(Base):
-    """Registered edge devices."""
     __tablename__ = "nodes"
-    
     node_id = Column(String(64), primary_key=True)
     name = Column(String(128))
     firmware_version = Column(String(32))
     last_seen_at = Column(DateTime(timezone=True))
     is_active = Column(Boolean, default=True)
 
-
 class Telemetry(Base):
-    """Time-series sensor data (TimescaleDB hypertable)."""
     __tablename__ = "telemetry"
-    
     time = Column(DateTime(timezone=True), primary_key=True, nullable=False)
     node_id = Column(String(64), ForeignKey("nodes.node_id"), primary_key=True)
     temperature_c = Column(Float)
@@ -35,11 +22,8 @@ class Telemetry(Base):
     rssi_dbm = Column(Integer)
     error_flags = Column(Integer, default=0)
 
-
 class InferenceResult(Base):
-    """ML inference results (TimescaleDB hypertable)."""
     __tablename__ = "inference_results"
-    
     time = Column(DateTime(timezone=True), primary_key=True, nullable=False)
     node_id = Column(String(64), ForeignKey("nodes.node_id"), primary_key=True)
     model_type = Column(String(16))
@@ -48,11 +32,8 @@ class InferenceResult(Base):
     anomaly_score = Column(Float)
     raw_outputs = Column(JSONB)
 
-
 class Command(Base):
-    """Command queue for edge devices."""
     __tablename__ = "commands"
-    
     command_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     node_id = Column(String(64), ForeignKey("nodes.node_id"))
     command_type = Column(String(32))
@@ -62,11 +43,8 @@ class Command(Base):
     sent_at = Column(DateTime(timezone=True))
     completed_at = Column(DateTime(timezone=True))
 
-
 class DeviceLog(Base):
-    """Device log messages."""
     __tablename__ = "device_logs"
-    
     log_id = Column(Integer, primary_key=True, autoincrement=True)
     node_id = Column(String(64), ForeignKey("nodes.node_id"))
     message = Column(Text)

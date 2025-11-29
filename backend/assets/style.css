@@ -1,9 +1,9 @@
-/* HappyBees Dashboard Styles */
-
+/* --- FONTS --- */
+/* Using the Variable Font file you listed */
 @font-face {
     font-family: 'Exo';
     src: url('Exo/Exo-VariableFont_wght.ttf') format('truetype');
-    font-weight: 100 900;
+    font-weight: 100 900; /* Variable font range */
     font-style: normal;
 }
 
@@ -22,22 +22,26 @@
     --term-bg: #000000;
 }
 
+/* Force body background to override Bootstrap using !important */
 body {
     background-color: var(--void-black) !important;
     color: var(--neon-yellow) !important;
     font-family: 'Exo', 'Courier New', monospace;
     margin: 0;
     min-height: 100vh;
-    background-image:
+    /* Retro Grid Background */
+    background-image: 
         linear-gradient(var(--grid-line) 1px, transparent 1px),
         linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
     background-size: 50px 50px;
 }
 
+/* --- GLOW EFFECTS --- */
 .retro-glow {
     text-shadow: 0 0 5px var(--neon-yellow), 0 0 10px var(--neon-yellow);
 }
 
+/* --- COMPONENTS --- */
 .retro-container {
     padding: 20px;
     max-width: 1600px;
@@ -71,6 +75,7 @@ body {
     position: relative;
 }
 
+/* --- TERMINAL WINDOW --- */
 .terminal-window {
     background-color: var(--term-bg);
     height: 350px;
@@ -93,6 +98,7 @@ body {
     opacity: 0.7;
 }
 
+/* --- BUTTONS --- */
 .retro-btn {
     background-color: transparent;
     color: var(--neon-yellow);
@@ -121,10 +127,10 @@ body {
     transform: scale(0.98);
 }
 
+/* --- PLOTLY OVERRIDES --- */
 .js-plotly-plot .plotly .main-svg {
     background: transparent !important;
 }
-
 .js-plotly-plot .plotly .modebar {
     display: none !important;
 }
