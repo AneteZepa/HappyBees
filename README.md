@@ -4,135 +4,94 @@
   <img src="assets/beewatch_logo.png" alt="BeeWatch Logo" width="200">
 </p>
 
-**HappyBees** is a distributed acoustic monitoring system for beehives. It uses edge ML on a Raspberry Pi Pico 2 W to detect swarming events and uploads telemetry to a central server with a real-time dashboard.
+HappyBees is a distributed IoT beehive monitoring system. It uses edge ML on a Raspberry Pi Pico 2 W to detect swarming events via acoustic analysis and uploads telemetry to a central server with a real-time dashboard.
 
-##  Features
-
-- **On-device ML inference** using Edge Impulse TFLite models
-- **Acoustic analysis** with configurable DSP pipeline
-- **Environmental monitoring** (temperature, humidity via SHT20)
-- **WiFi connectivity** with command queue polling
-- **Real-time dashboard** with retro-futuristic UI
-- **Mock device mode** for development without hardware
-
-##  Project Structure
+## Project Structure
 
 ```
-beewatch/
-├── firmware/                    # Pico 2 W firmware (C++)
-│   ├── source/
-│   │   ├── main.cpp            # Main application
-│   │   ├── config.h            # Hardware configuration
-│   │   ├── flash_config.h      # WiFi credential storage
-│   │   └── lwipopts.h          # TCP/IP stack config
-│   ├── mode_summer/            # Summer ML model (Edge Impulse)
-│   ├── model_winter/           # Winter ML model (Edge Impulse)
-│   ├── edge-impulse-sdk/       # Edge Impulse SDK
-│   └── CMakeLists.txt          # Build configuration
-│
-├── backend/                     # Python backend server
-│   ├── app/
-│   │   ├── main.py             # FastAPI entry point
-│   │   ├── database.py         # TimescaleDB connection
-│   │   ├── models.py           # SQLAlchemy models
-│   │   ├── schemas.py          # Pydantic schemas
-│   │   └── api/                # REST endpoints
-│   │       ├── telemetry.py
-│   │       ├── inference.py
-│   │       ├── commands.py
-│   │       └── logs.py
-│   ├── dashboard/
-│   │   └── app.py              # Dash frontend
-│   ├── scripts/
-│   │   ├── mock_stream.py      # Mock device simulator
-│   │   └── configure_device.py # WiFi provisioning
-│   └── assets/                 # CSS, fonts, images
-│
-├── tools/                       # Diagnostic utilities
-│   ├── mac_shim.py             # Reference ML implementation
-│   ├── audio_capture.py        # Pico audio streaming
-│   ├── parity_diagnostic.py    # DSP verification
-│   └── test_features.py        # Direct model testing
-│
-├── docs/                        # Documentation
-│   ├── ML_MODEL_GUIDE.md       # Deep dive on the ML model
-│   └── ARCHITECTURE.md         # System architecture
-│
-├── podman-compose.yml          # Container orchestration
-├── Containerfile.backend       # Backend container
-└── README.md                   # This file
+happybees/
+├── firmware/           # Pico 2 W firmware (C++)
+│   ├── source/         # Application code
+│   ├── mode_summer/    # Summer ML model (Edge Impulse)
+│   ├── model_winter/   # Winter ML model (Edge Impulse)
+│   └── edge-impulse-sdk/  # EI SDK 
+├── backend/            # Python server and dashboard
+│   ├── app/            # FastAPI application
+│   ├── dashboard/      # Dash frontend
+│   ├── scripts/        # Utilities (mock device, provisioning)
+│   └── assets/         # CSS, fonts, images
+├── tools/              # Diagnostic and verification utilities
+└── docs/               # Technical documentation
 ```
 
----
+## Prerequisites
 
-##  Quick Start
+- Python 3.11+ with [uv](https://github.com/astral-sh/uv) package manager
+- Podman or Docker (for TimescaleDB)
+- Pico SDK 2.0+ (for firmware development)
+- CMake 3.20+ and ARM GCC toolchain
 
-### Prerequisites
+## Quick Start
 
-- **Python 3.11+** with `uv` package manager
-- **Podman** or Docker (for database)
-- **Pico SDK 2.0+** (for firmware development)
-- **CMake 3.20+** and ARM GCC toolchain
-
-### 1. Start the Database
+### 1. Clone and Setup Environment
 
 ```bash
-# Start TimescaleDB
-podman-compose up -d timescaledb
+git clone git@github.com:AneteZepa/HappyBees.git
+cd HappyBees
 
-# Verify it's running
-podman ps
-```
-
-### 2. Start the Backend Server
-
-```bash
-cd backend
-
-# Create virtual environment and install deps
+# Create virtual environment and install all dependencies
 uv venv
-source .venv/bin/activate
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 uv pip install -r requirements.txt
-
-# Start the API server
-uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-### 3. Start the Dashboard
+### 2. Start the Database
 
 ```bash
-# In a new terminal, from backend/
-source .venv/bin/activate
-uv run python -m dashboard.app --node pico-hive-001
-
-# Open browser to http://localhost:8050
+podman run -d --name happybees-db \
+    -p 5432:5432 \
+    -e POSTGRES_USER=postgres \
+    -e POSTGRES_PASSWORD=happybees_dev \
+    -e POSTGRES_DB=happybees \
+    timescale/timescaledb:latest-pg16
 ```
 
-### 4. Connect a Device
-
-**Option A: Real Pico Hardware**
+### 3. Start the Backend Server
 
 ```bash
-# Build and flash firmware (see Firmware section)
-# Configure WiFi credentials via serial:
-tio -b 115200 /dev/tty.usbmodem*
-
-> wifi YOUR_SSID YOUR_PASSWORD
-> server YOUR_SERVER_IP
+# From project root with venv activated
+uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-**Option B: Mock Device (for development)**
+Verify: http://localhost:8000/health should return `{"status": "healthy"}`
+
+### 4. Start the Dashboard
 
 ```bash
-cd backend
-uv run python scripts/mock_stream.py --node pico-hive-001
+# In a new terminal, from project root with venv activated
+python -m backend.dashboard.app --node pico-hive-001
 ```
+
+Open http://localhost:8050 in your browser.
+
+### 5. Connect a Device
+
+**Option A: Mock Device (no hardware required)**
+
+```bash
+# In a third terminal, from project root with venv activated
+python backend/scripts/mock_stream.py --node pico-hive-001
+```
+
+**Option B: Real Pico Hardware**
+
+See the Firmware section below.
 
 ---
 
-##  Firmware Development
+## Firmware
 
-### Building the Firmware
+### Building
 
 ```bash
 cd firmware
@@ -144,243 +103,147 @@ export PICO_SDK_PATH=/path/to/pico-sdk
 mkdir build && cd build
 cmake .. -DPICO_BOARD=pico2_w
 make -j4
-
-# Flash (hold BOOTSEL, plug in USB)
-cp beewatch_firmware.uf2 /Volumes/RP2350/
 ```
 
-### Serial Console Commands
+### Flashing
+
+1. Hold BOOTSEL button on Pico
+2. Plug in USB cable
+3. Copy `happybees_firmware.uf2` to the mounted RP2350 drive
+
+### Configuration
+
+Connect via serial to configure WiFi:
+
+```bash
+tio -b 115200 /dev/tty.usbmodem*
+
+> wifi YOUR_SSID YOUR_PASSWORD
+> server 192.168.0.100
+> p   # Ping to verify
+```
+
+### Serial Commands
 
 | Command | Description |
 |---------|-------------|
 | `s` | Run Summer model inference |
 | `w` | Run Winter model inference |
 | `t` | Read temperature/humidity |
-| `a` | Stream raw audio to PC |
+| `a[N]` | Stream N seconds of audio (default 6) |
+| `d` | Debug dump (show all 20 features) |
 | `m` | Toggle mock sensor mode |
 | `c` | Clear rolling history |
-| `d` | Debug feature dump |
-| `p` | Ping (connectivity test) |
-| `g0.35` | Set gain compensation |
-| `wifi SSID PASS` | Configure WiFi |
-| `server IP` | Configure server IP |
+| `g[N.NN]` | Show/set gain compensation (e.g., `g0.35`) |
+| `b` | Toggle background sampling |
+| `p` | Ping (show version and status) |
+| `h` | Show help |
 
-### Gain Calibration
+---
 
-The microphone circuit gain affects ML predictions. Calibrate for your hardware:
+## Verification and Testing
+
+### Testing the ML Model
+
+The model can be tested independently of the firmware:
 
 ```bash
-tio -b 115200 /dev/tty.usbmodem*
+# Run feature sensitivity sweep
+python tools/test_features.py --sweep
 
-> m          # Enable mock mode
-> c          # Clear history
-> s          # Run inference, check FFT bins
-
-# Target: Bins[4-7] should be 0.02-0.06 for quiet room
-> g0.35      # Adjust gain (lower = smaller bins)
-> s          # Test again
+# Test specific features from Pico output
+python tools/test_features.py
 ```
-
----
-
-##  Backend API
-
-### Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/v1/telemetry/` | Store sensor data |
-| `GET` | `/api/v1/telemetry/?node_id=X` | Get telemetry history |
-| `POST` | `/api/v1/inference/` | Store ML results |
-| `GET` | `/api/v1/inference/latest?node_id=X` | Get latest inference |
-| `POST` | `/api/v1/commands/` | Queue command for device |
-| `GET` | `/api/v1/commands/pending?node_id=X` | Get pending commands |
-| `POST` | `/api/v1/logs/` | Store device log |
-| `GET` | `/api/v1/logs/?node_id=X` | Get log history |
-
-### Database Schema
-
-```sql
--- TimescaleDB hypertables for time-series data
-
-telemetry (time, node_id, temperature_c, humidity_pct, battery_mv)
-inference_results (time, node_id, model_type, classification, confidence)
-commands (command_id, node_id, command_type, params, status)
-device_logs (log_id, node_id, message, created_at)
-nodes (node_id, name, firmware_version, last_seen_at)
-```
-
----
-
-##  Testing & Verification
 
 ### Verifying DSP Parity
 
-The `tools/` directory contains utilities to verify firmware matches the reference implementation:
+Capture audio from the Pico and verify FFT calculations match the reference:
 
 ```bash
-cd tools
+# Capture audio from Pico
+python tools/audio_capture.py -d /dev/tty.usbmodem2101 -o pico_audio.wav
 
-# 1. Capture audio from Pico
-python audio_capture.py -d /dev/tty.usbmodem2101 -o pico_audio.wav
+# Analyze and find optimal gain
+python tools/parity_diagnostic.py pico_audio.wav --find-gain
 
-# 2. Analyze FFT values
-python parity_diagnostic.py pico_audio.wav --find-gain
-
-# 3. Compare with MacOS/Python script reference implementation (i.e. use your Mac's mic to test the model)
-python mac_shim.py --model summer --verbose
+# Compare with Mac reference
+python tools/mac_shim.py --model summer --verbose
 ```
 
-### Direct Model Testing
+### Running the Mac Reference Implementation
 
-Test specific feature vectors against the TFLite model:
+The mac_shim.py provides a reference implementation using the Mac's microphone:
 
 ```bash
-cd tools
-
-# Test exact Pico features
-python test_features.py
-
-# Sweep all feature sensitivities
-python test_humidity.py
+python tools/mac_shim.py --model summer --verbose
+# Press Enter to record 6 seconds and run inference
 ```
 
 ---
 
-##  ML Model Details
+## Understanding the ML Model
 
-The Summer model detects swarming/piping events. Key characteristics:
+The Summer model detects swarming/piping events based on acoustic analysis. Key points:
 
-- **Input**: 20-element float32 vector
-- **Output**: 2 classes (Normal, Event)
-- **Primary feature**: Spike ratio (current/rolling audio energy)
-- **Frequency range**: 125-594 Hz (bee communication frequencies)
+1. **Primary Feature: Spike Ratio** - The model primarily uses the ratio of current audio energy to historical average. A spike > 1.3 indicates increasing activity (potential swarm), while < 0.7 indicates decreasing activity (normal settling).
 
-**See [docs/ML_MODEL_GUIDE.md](docs/ML_MODEL_GUIDE.md) for complete technical documentation.**
+2. **Why "Always Swarming" on Fresh Start** - With no history, spike ratio = 1.0 (steady state), which the model treats as potentially concerning. After 5-6 readings, the rolling average stabilizes.
 
-### Why "Spike Ratio" Matters
+3. **Gain Calibration** - Different microphone circuits require different gain compensation. Default is 0.35 for TLC272CP op-amp. Adjust with `g` command until FFT bins are 0.02-0.06 for a quiet room.
 
-The model was trained to detect **changes** in hive activity:
-
-| Spike Ratio | Meaning | Prediction |
-|-------------|---------|------------|
-| < 0.7 | Activity decreasing | Normal |
-| ≈ 1.0 | Steady state | Ambiguous (defaults to Event) |
-| > 1.3 | Activity increasing | Event |
-
-A freshly-booted device has no history, so spike = 1.0 → always predicts Event.
-After several readings, the rolling average stabilizes and predictions become meaningful.
+For complete technical details, see [docs/ML_MODEL_GUIDE.md](docs/ML_MODEL_GUIDE.md).
 
 ---
 
-##  Container Deployment
+## API Reference
 
-### Using Podman Compose
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/telemetry/` | Store sensor readings |
+| GET | `/api/v1/telemetry/?node_id=X` | Get telemetry history |
+| POST | `/api/v1/inference/` | Store ML results |
+| GET | `/api/v1/inference/latest?node_id=X` | Get latest inference |
+| POST | `/api/v1/commands/` | Queue command for device |
+| GET | `/api/v1/commands/pending?node_id=X` | Get pending commands |
+| POST | `/api/v1/logs/` | Store device log |
+| GET | `/api/v1/logs/?node_id=X` | Get log history |
+
+---
+
+## Container Deployment
+
+For production deployment using containers:
 
 ```bash
-# Start all services
 podman-compose up -d
-
-# View logs
-podman-compose logs -f backend
-
-# Stop all
-podman-compose down
 ```
 
-### Building Images
-
-```bash
-# Backend
-podman build -t beewatch-backend -f Containerfile.backend .
-
-# Run standalone
-podman run -p 8000:8000 beewatch-backend
-```
+This starts TimescaleDB, the backend API, and the dashboard.
 
 ---
 
-##  Hardware Setup
+## Troubleshooting
 
-### Bill of Materials
+**Dashboard shows "--" for values**
+- Verify backend is running: `curl localhost:8000/health`
+- Check device is connected (look for POST requests in backend logs)
 
-| Component | Part Number | Notes |
-|-----------|-------------|-------|
-| MCU | Raspberry Pi Pico 2 W | RP2350 + WiFi |
-| Microphone | INMP441/SPW2430 or similar | I2S MEMS/Analog mic |
-| Op-Amp | TLC272CP | ~22x gain |
-| Temp/Humidity | SHT20 | I2C sensor |
+**Pico won't connect to WiFi**
+- Verify SSID/password spelling
+- Ensure 2.4GHz network (Pico doesn't support 5GHz)
 
-### Wiring
+**Always predicts "Swarming"**
+- Normal on fresh start - run inference 5-6 times to build history
+- Or make noise during one capture, then go quiet (spike will drop)
 
-```
-Mic → Op-Amp (TLC272CP) → Pico GPIO26 (ADC0)
-SHT20 SDA → Pico GPIO4
-SHT20 SCL → Pico GPIO5
-```
-
----
-
-##  Configuration
-
-### Environment Variables
-
-```bash
-# Backend
-DATABASE_URL=postgresql+psycopg://postgres:beewatch_dev@localhost:5432/beewatch
-
-# Dashboard
-API_URL=http://localhost:8000/api/v1
-NODE_ID=pico-hive-001
-```
-
-### Firmware Configuration
-
-Edit `firmware/source/config.h`:
-
-```cpp
-#define SAMPLE_RATE_HZ       16000
-#define CAPTURE_SECONDS      6
-#define HISTORY_SIZE         12
-#define DEFAULT_GAIN         0.35f
-```
+**FFT bins too high/low**
+- Adjust gain: `g0.25` (lower) or `g0.50` (higher)
+- Target: bins 0.02-0.06 for quiet room
 
 ---
 
-##  Roadmap
+## License
 
-- [ ] **Deep Sleep Mode**: Reduce power from 40mA to μA for battery operation
-- [ ] **OTA Updates**: Download firmware updates over WiFi
-- [ ] **HTTPS/TLS**: Secure communication with mbedtls
-- [ ] **Multi-node Dashboard**: Monitor multiple hives simultaneously
-- [ ] **Background Sampling**: Continuous audio monitoring with configurable interval
+BSD 3-Clause License. See [LICENSE](LICENSE) for details.
 
----
-
-##  Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing`)
-5. Open a Pull Request
-
----
-
-##  License
-
-This project is licensed under the BSD 3 License - see [LICENSE](LICENSE) file for details.
-
-Edge Impulse SDK components are subject to Edge Impulse terms of service.
-
----
-
-##  Acknowledgments
-
-- Edge Impulse for the ML training platform
-- Raspberry Pi Foundation for the Pico 2 W
-- The beekeeping community for domain expertise
-
----
-
-*Built with 🐝 by the HappyBees Team*
+Edge Impulse SDK components are subject to Edge Impulse Terms of Service.

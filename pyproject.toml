@@ -1,0 +1,35 @@
+[project]
+name = "happybees"
+version = "0.7.0"
+description = "Distributed IoT Beehive Monitoring System with Edge ML"
+readme = "README.md"
+license = {text = "BSD-3-Clause"}
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.104.0",
+    "uvicorn[standard]>=0.24.0",
+    "sqlalchemy>=2.0.0",
+    "psycopg[binary]>=3.1.0",
+    "dash>=2.14.0",
+    "dash-bootstrap-components>=1.5.0",
+    "plotly>=5.18.0",
+    "pandas>=2.1.0",
+    "httpx>=0.25.0",
+    "pydantic>=2.5.0",
+    "numpy>=1.24.0",
+    "scipy>=1.10.0",
+    "tensorflow>=2.15.0",
+    "sounddevice>=0.4.6",
+    "pyserial>=3.5",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=7.0.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+]

@@ -1,0 +1,1 @@
+"""HappyBees API Endpoints."""

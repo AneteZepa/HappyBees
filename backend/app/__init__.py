@@ -1,0 +1,1 @@
+"""HappyBees Backend Application."""
