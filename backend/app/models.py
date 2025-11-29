@@ -1,7 +1,8 @@
 from datetime import datetime
 from sqlalchemy import Column, String, Integer, Float, Boolean, DateTime, ForeignKey, Text
 from sqlalchemy.dialects.postgresql import UUID, JSONB
-from app.database import Base
+# CHANGED: Updated import to point to backend.app.database
+from backend.app.database import Base
 import uuid
 
 class Node(Base):

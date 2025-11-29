@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from app.database import get_session
-from app.models import InferenceResult
-from app.schemas import InferenceCreate
+from backend.app.database import get_session
+from backend.app.models import InferenceResult
+from backend.app.schemas import InferenceCreate
 from datetime import datetime
 
 router = APIRouter(prefix="/inference", tags=["inference"])

@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from app.database import get_session
-from app.models import Command
-from app.schemas import CommandCreate, CommandResponse
+from backend.app.database import get_session
+from backend.app.models import Command
+from backend.app.schemas import CommandCreate, CommandResponse
 
 router = APIRouter(prefix="/commands", tags=["commands"])
 

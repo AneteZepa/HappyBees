@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from app.database import get_session
-from app.models import Telemetry, Node
-from app.schemas import TelemetryCreate
+from backend.app.database import get_session
+from backend.app.models import Telemetry, Node
+from backend.app.schemas import TelemetryCreate
 from datetime import datetime
 
 router = APIRouter(prefix="/telemetry", tags=["telemetry"])

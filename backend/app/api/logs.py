@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from app.database import get_session
-from app.models import DeviceLog, Node
-from app.schemas import CommandCreate # Using generic model
+from backend.app.database import get_session
+from backend.app.models import DeviceLog, Node
+from backend.app.schemas import CommandCreate # Using generic model
 from pydantic import BaseModel
 from datetime import datetime
 
