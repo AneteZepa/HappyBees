@@ -306,6 +306,11 @@ This starts TimescaleDB, the backend API, and the dashboard.
     * Target: bins 0.02-0.06 for quiet room
 
 
+ <p align="center">
+    <img src="assets/Final_Grid_Only.gif" alt="Progress and troubleshoting compilation" style="max-width: 100%; height: auto;">
+</p>
+
+
 ## Edge Impulse
 
 Check out the [Winter Bees Edge Impulse project](https://studio.edgeimpulse.com/public/837280/live)
