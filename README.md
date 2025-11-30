@@ -124,6 +124,14 @@ Now that the "bad" state is cleared, restart the components: start the database,
 
 See the *Firmware* section below.
 
+### 6. Dashboard
+
+<p align="center">
+  <a href="https://youtu.be/81R6ASa6Qyc" target="_blank">
+    <img src="assets/output.gif" alt="Click to Watch Full Dashboard Demo on YouTube" style="max-width: 100%; height: auto;">
+  </a>
+</p>
+
 ---
 
 ## Firmware
