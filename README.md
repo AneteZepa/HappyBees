@@ -30,6 +30,7 @@ HappyBees/
 * [Podman](https://podman.io/docs/installation) or [Docker](https://docs.docker.com/engine/install/) (for [TimescaleDB](https://www.tigerdata.com/docs/self-hosted/latest/install))
 * [Pico SDK 2.0+](https://github.com/raspberrypi/pico-sdk) (for firmware development)
 * [CMake 3.20+](https://cmake.org/download/) and [ARM GCC toolchain](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads)
+* [tio](https://github.com/tio/tio) serial device I/O tool
 
 ## Quick Start
 
@@ -97,6 +98,24 @@ python backend/scripts/mock_stream.py --node pico-hive-001
 
 **Option B: Real Pico Hardware**
 
+**Note:** if you ran the mock device above, you will first need to stop all traffic and processes related to it before attempting to connect the real device.
+
+To stop the mock, wipe and reset the database:
+```bash
+# Kill processes on port 8000 (Backend) and 8050 (Dashboard)
+lsof -ti:8000,8050 | xargs kill -9
+# 1. Stop the container
+podman stop happybees-db
+
+# 2. Remove the container (This WIPES the data because no volume was mapped)
+podman rm happybees-db
+
+# 3. (Optional) Prune anonymous volumes to be absolutely sure
+podman volume prune -f
+```
+
+Now that the "bad" state is cleared, restart the components: start the database, backend, and dashboard.
+
 See the *Firmware* section below.
 
 ---
@@ -155,7 +174,7 @@ Enter the following commands in the serial console:
 > server YOUR_IP
 > p   # Ping to verify
 ```
-
+Now you can go to [http://localhost:8050](http://localhost:8050) and press `T|READ SENSORS` button to start collecting time-series temperature and humidity data and `S|SUMMER INFER` to run the summer model inference.
 ### Serial Commands
 
 | Command | Description |
