@@ -7,7 +7,9 @@
 HappyBees is a distributed IoT beehive monitoring system. It uses edge ML on a Raspberry Pi Pico 2 W to detect swarming events via acoustic analysis and uploads telemetry to a central server with a real-time dashboard.
 
 <p align="center">
-  <video src="assets/HappyBees.mp4" width="800" height="450" controls autoplay muted loop style="max-width: 100%; height: auto;"></video>
+  <a href="https://youtu.be/2LJu1KVIeW4" target="_blank">
+    <img src="assets/HappyBees_Demo.gif" alt="Click to Watch Full Video Demo on YouTube" style="max-width: 100%; height: auto;">
+  </a>
 </p>
 
 ## Project Structure
