@@ -9,7 +9,7 @@ HappyBees is a distributed IoT beehive monitoring system. It uses edge ML on a R
 ## Project Structure
 
 ```text
-happybees/
+HappyBees/
 ├── firmware/           # Pico 2 W firmware (C++)
 │   ├── source/         # Application code
 │   ├── mode_summer/    # Summer ML model (Edge Impulse)
@@ -26,10 +26,10 @@ happybees/
 
 ## Prerequisites
 
-* Python 3.11+ with `uv` package manager
-* Podman or Docker (for TimescaleDB)
-* Pico SDK 2.0+ (for firmware development)
-* CMake 3.20+ and ARM GCC toolchain
+* Python 3.11+ with `uv` [package manager](https://docs.astral.sh/uv/getting-started/installation/)
+* [Podman](https://podman.io/docs/installation) or [Docker](https://docs.docker.com/engine/install/) (for [TimescaleDB](https://www.tigerdata.com/docs/self-hosted/latest/install))
+* [Pico SDK 2.0+](https://github.com/raspberrypi/pico-sdk) (for firmware development)
+* [CMake 3.20+](https://cmake.org/download/) and [ARM GCC toolchain](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads)
 
 ## Quick Start
 
