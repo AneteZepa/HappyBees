@@ -1,0 +1,136 @@
+/* --- FONTS --- */
+/* Using the Variable Font file you listed */
+@font-face {
+    font-family: 'Exo';
+    src: url('Exo/Exo-VariableFont_wght.ttf') format('truetype');
+    font-weight: 100 900; /* Variable font range */
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Exo';
+    src: url('Exo/Exo-Italic-VariableFont_wght.ttf') format('truetype');
+    font-weight: 100 900;
+    font-style: italic;
+}
+
+:root {
+    --neon-yellow: #FFD700;
+    --neon-yellow-dim: #b39700;
+    --void-black: #050505;
+    --grid-line: #1a1a1a;
+    --term-bg: #000000;
+}
+
+/* Force body background to override Bootstrap using !important */
+body {
+    background-color: var(--void-black) !important;
+    color: var(--neon-yellow) !important;
+    font-family: 'Exo', 'Courier New', monospace;
+    margin: 0;
+    min-height: 100vh;
+    /* Retro Grid Background */
+    background-image: 
+        linear-gradient(var(--grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 50px 50px;
+}
+
+/* --- GLOW EFFECTS --- */
+.retro-glow {
+    text-shadow: 0 0 5px var(--neon-yellow), 0 0 10px var(--neon-yellow);
+}
+
+/* --- COMPONENTS --- */
+.retro-container {
+    padding: 20px;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+.retro-card {
+    border: 1px solid var(--neon-yellow);
+    background-color: rgba(0, 0, 0, 0.9);
+    margin-bottom: 20px;
+    height: 100%;
+    box-shadow: 0 0 5px rgba(255, 215, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+}
+
+.retro-card-header {
+    background-color: var(--neon-yellow-dim);
+    color: #000;
+    padding: 5px 15px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.retro-card-body {
+    padding: 15px;
+    flex-grow: 1;
+    position: relative;
+}
+
+/* --- TERMINAL WINDOW --- */
+.terminal-window {
+    background-color: var(--term-bg);
+    height: 350px;
+    overflow-y: auto;
+    font-family: 'Courier New', monospace;
+    padding: 10px;
+    font-size: 0.85rem;
+    color: #fff;
+    border-top: 1px solid var(--grid-line);
+}
+
+.log-entry {
+    margin-bottom: 2px;
+    border-bottom: 1px solid #111;
+}
+
+.log-timestamp {
+    color: var(--neon-yellow);
+    margin-right: 10px;
+    opacity: 0.7;
+}
+
+/* --- BUTTONS --- */
+.retro-btn {
+    background-color: transparent;
+    color: var(--neon-yellow);
+    border: 1px solid var(--neon-yellow);
+    border-radius: 0;
+    font-family: 'Exo', sans-serif;
+    text-transform: uppercase;
+    font-weight: bold;
+    transition: all 0.2s;
+    margin: 4px;
+    width: 100%;
+    text-align: left;
+    padding: 10px 15px;
+    position: relative;
+    overflow: hidden;
+}
+
+.retro-btn:hover {
+    background-color: var(--neon-yellow);
+    color: #000;
+    box-shadow: 0 0 15px var(--neon-yellow);
+    cursor: pointer;
+}
+
+.retro-btn:active {
+    transform: scale(0.98);
+}
+
+/* --- PLOTLY OVERRIDES --- */
+.js-plotly-plot .plotly .main-svg {
+    background: transparent !important;
+}
+.js-plotly-plot .plotly .modebar {
+    display: none !important;
+}
