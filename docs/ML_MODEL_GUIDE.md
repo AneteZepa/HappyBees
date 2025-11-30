@@ -1,6 +1,6 @@
 # HappyBees ML Model Technical Guide
 
-## Executive Summary
+## Summer Model Executive Summary
 
 The HappyBees Summer Model is a TensorFlow Lite neural network trained to detect swarming and piping events in beehives using acoustic analysis. This document explains how the model works, how it was verified, and how to calibrate it for different hardware.
 
@@ -318,6 +318,93 @@ python tools/test_features.py --sweep # Sweep all features
 | Total static | ~276 KB | |
 | Available RAM | 520 KB | RP2350 |
 | Headroom | ~244 KB | |
+
+---
+
+
+## Winter Model Executive Summary
+
+The **Winter Model** is a symmetric Autoencoder wrapped in a custom scaling layer. The winter model performs Anomaly Detection.
+
+Winter Survival: Detecting anomalies like colony death, starvation, cluster instability (the "Death chill"), and various queen issues.
+
+| Feature | Specification |
+| :--- | :--- |
+| **Architecture** | PyTorch Autoencoder (Reconstruction) |
+| **Structure** | Encoder (Compress) → Bottleneck → Decoder (Expand) |
+| **Bottleneck** | **3 Neurons** (Data compressed to just 3 numbers) |
+| **Input Shape** | `(Batch, 5)` |
+| **Format** | ONNX (with embedded Min/Max scaling wrapper) |
+
+
+## Part 1: Data Extraction & Pre-processing
+
+The Winter model relies on "engineered features" rather than raw data streams alone. To use the model correctly, you must pre-process the sensor data as follows before running inference.
+
+### Part 1.1: Input Feature Vector (5 elements)
+
+The model expects a float32 array of shape `(1, 5)`:
+
+| Index | Feature | Unit | Extraction Logic |
+| :--- | :--- | :--- | :--- |
+| **0** | **Temperature** | °C | Raw reading from internal hive sensor. |
+| **1** | **Humidity** | % | Raw reading from internal hive sensor. |
+| **2** | **Temp Stability** | Float | Variance of the last 12 temperature readings. |
+| **3** | **Heater Power** | Float | Sum of audio magnitudes at 183Hz, 213Hz, and 244Hz. |
+| **4** | **Heater Ratio** | Float | Ratio of *Heater Power* to total *Audio Density*. |
+
+---
+
+### Part 1.2: Feature Engineering Logic
+
+Here is the exact logic (Python/Pandas equivalent) used to derive features 2, 3, and 4.
+
+#### Feature 2: Temperature Stability
+This measures how "steady" the cluster temperature is.
+* **Window:** Last 12 readings.
+* **Formula:** Statistical Variance.
+* **Python Code:** `df['temperature'].rolling(window=12).var()`
+
+#### Feature 3: Heater Power (The "Cluster Hum")
+The winter cluster vibrates at specific frequencies to generate heat. We sum the magnitudes of these three specific FFT bins:
+* **Target Frequencies:** ~183 Hz, ~213 Hz, ~244 Hz.
+* **Python Code:**
+    ```python
+    heater_freqs = [
+        'hz_183.10546875', 
+        'hz_213.623046875', 
+        'hz_244.140625'
+    ]
+    df['heater_power'] = df[heater_freqs].sum(axis=1)
+    ```
+
+#### **Feature 4: Heater Ratio (Efficiency)**
+This measures the "efficiency" of the hive's heating. Are they generating the correct heating frequencies relative to the total noise they are making?
+* **Formula:** `Heater Power / Total Audio Density`
+* **Python Code:**
+    ```python
+    heater_ratio = heater_power / (total_audio_density + 1e-6)
+    ```
+
+---
+
+## Part 2: Model Output & Anomaly Detection
+
+### Part 2.1: The Output Vector
+Because this model is an Autoencoder, the output shape is identical to the input shape `(1, 5)`.
+
+The model attempts to **reconstruct** the input you gave it.
+* **Input:** `[25.0, 60.0, 0.01, 0.5, 0.8]`
+* **Output:** `[24.9, 59.8, 0.01, 0.49, 0.79]` *(Example of a good reconstruction)*
+
+### Part 2.2: Calculating the Anomaly Score
+To determine if a hive is in danger (Anomaly), calculate the **Mean Squared Error (MSE)** between the Input vector and the Output vector.
+
+$$ MSE = \frac{1}{n} \sum_{i=1}^{n} (Y_i - \hat{Y}_i)^2 $$
+
+**Interpretation:**
+* **Low MSE (e.g., < 0.1):** The model recognizes this data. The hive is behaving like a healthy winter cluster.
+* **High MSE (e.g., > 0.5):** The model *cannot* reconstruct this data. The "cluster signature" is broken, missing, or erratic. **Alert: Potential Freezing or Starvation.**
 
 ---
 
