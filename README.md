@@ -292,6 +292,14 @@ This starts TimescaleDB, the backend API, and the dashboard.
     * Adjust gain: `g0.25` (lower) or `g0.50` (higher)
     * Target: bins 0.02-0.06 for quiet room
 
+
+## Edge Impulse
+
+Check out the [Winter Bees Edge Impulse project](https://studio.edgeimpulse.com/public/837280/live)
+
+Check out the [Summer Bees Edge Impulse project](https://studio.edgeimpulse.com/public/835586/live)
+
+
 ## License
 
 BSD 3-Clause License. See `LICENSE` for details.
