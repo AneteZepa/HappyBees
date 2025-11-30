@@ -163,6 +163,11 @@ make -j4
 2.  Plug in USB cable.
 3.  Copy `beewatch_firmware.uf2` to the mounted RP2350 drive.
 
+<p align="center">
+  <img src="assets/IMG_4268.jpeg" alt="Raspberry Pi Pico with microphone and humidity and temperature sensors">
+</p>
+
+
 ### Configuration
 
 **1. Find your Server's Local IP Address**
